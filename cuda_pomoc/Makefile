@@ -315,7 +315,7 @@ endif
 # Target rules
 all: build
 
-build: matrixMul
+build: matrixMul matrixMul1
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -329,16 +329,20 @@ matrixMul.o:matrixMul.cu
 
 matrixMul: matrixMul.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-#	$(EXEC) mkdir -p ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
-#	$(EXEC) cp $@ ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+
+matrixMul1.o:matrixMul1.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+matrixMul1: matrixMul1.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
 	$(EXEC) ./matrixMul
+	$(EXEC) ./matrixMul1
 
 testrun: build
 
 clean:
-	rm -f matrixMul matrixMul.o
-#	rm -rf ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/matrixMul
+	rm -f matrixMul matrixMul.o matrixMul1 matrixMul1.o
 
 clobber: clean

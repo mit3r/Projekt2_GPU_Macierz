@@ -1,0 +1,43 @@
+==70967== NVPROF is profiling process 70967, command: ./matrixMulN
+==70967== [Matrix Multiply Using CUDA] - Starting...
+GPU Device 0: "Pascal" with compute capability 6.1
+
+MatrixA(1600,1600), MatrixB(1600,1600)
+Computing result using CUDA Kernel...
+done
+Performance= 1630.06 GFlop/s, Time= 5.026 msec, Size= 8192000000 Ops, WorkgroupSize= 256 threads/block
+Checking computed result for correctness: Result = PASS
+
+NOTE: The CUDA Samples are not meant for performance measurements. Results may vary when GPU Boost is enabled.
+Profiling application: ./matrixMulN
+==70967== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,ms,,ms,ms,ms,
+"GPU activities",68.053302,10.044598,2,5.022299,5.013899,5.030699,"void MatrixMulCUDA_NCols<int=16, int=5>(float*, float*, float*, int, int)"
+"GPU activities",21.642019,3.194340,2,1.597170,1.595458,1.598882,"[CUDA memcpy HtoD]"
+"GPU activities",10.304678,1.520960,1,1.520960,1.520960,1.520960,"[CUDA memcpy DtoH]"
+"API calls",78.917957,153.528040,1,153.528040,153.528040,153.528040,"cudaSetDevice"
+"API calls",8.327416,16.200266,3,5.400088,5.317899,5.520704,"cudaHostAlloc"
+"API calls",3.960774,7.705343,3,2.568447,2.510461,2.673318,"cudaFreeHost"
+"API calls",3.371496,6.558953,2,3.279476,1.526954,5.031999,"cudaStreamSynchronize"
+"API calls",2.577159,5.013640,1,5.013640,5.013640,5.013640,"cudaEventSynchronize"
+"API calls",2.097157,4.079837,2,2.039918,0.010716,4.069121,"cudaLaunchKernel"
+"API calls",0.397265,0.772845,3,0.257615,0.090651,0.345330,"cudaFree"
+"API calls",0.147848,0.287626,3,0.095875,0.073841,0.108225,"cudaMalloc"
+"API calls",0.095542,0.185868,114,0.001630,0.000237,0.071895,"cuDeviceGetAttribute"
+"API calls",0.036355,0.070726,7,0.010103,0.000549,0.065066,"cudaDeviceGetAttribute"
+"API calls",0.024386,0.047441,3,0.015813,0.005420,0.029625,"cudaMemcpyAsync"
+"API calls",0.009386,0.018259,1,0.018259,0.018259,0.018259,"cudaStreamCreateWithFlags"
+"API calls",0.008214,0.015979,2,0.007989,0.000952,0.015027,"cudaEventCreate"
+"API calls",0.006410,0.012470,1,0.012470,0.012470,0.012470,"cuDeviceGetName"
+"API calls",0.004695,0.009134,1,0.009134,0.009134,0.009134,"cudaProfilerStart"
+"API calls",0.004693,0.009129,2,0.004564,0.003298,0.005831,"cudaEventRecord"
+"API calls",0.004006,0.007794,1,0.007794,0.007794,0.007794,"cuDeviceGetPCIBusId"
+"API calls",0.003720,0.007236,1,0.007236,0.007236,0.007236,"cuDeviceTotalMem"
+"API calls",0.001837,0.003573,2,0.001786,0.000880,0.002693,"cudaEventDestroy"
+"API calls",0.001385,0.002695,1,0.002695,0.002695,0.002695,"cudaEventElapsedTime"
+"API calls",0.001015,0.001974,3,0.000658,0.000275,0.001351,"cuDeviceGetCount"
+"API calls",0.000453,0.000882,2,0.000441,0.000258,0.000624,"cuDeviceGet"
+"API calls",0.000441,0.000858,1,0.000858,0.000858,0.000858,"cudaGetDeviceCount"
+"API calls",0.000216,0.000421,1,0.000421,0.000421,0.000421,"cuModuleGetLoadingMode"
+"API calls",0.000173,0.000336,1,0.000336,0.000336,0.000336,"cuDeviceGetUuid"

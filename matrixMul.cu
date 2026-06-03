@@ -48,8 +48,8 @@
 #include <cuda_profiler_api.h>
 
 // Helper functions and utilities to work with CUDA
-#include <helper_functions.h>
-#include <helper_cuda.h>
+#include <helpers/helper_cuda.h>
+#include <helpers/helper_functions.h>
 
 /**
  * Matrix multiplication (CUDA Kernel) on the device: C = A * B

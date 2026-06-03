@@ -285,7 +285,8 @@ LIBRARIES :=
 ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),armv7l aarch64 sbsa))
 SMS ?= 53 61 70 72 75 80 86 87 90
 else
-SMS ?= 50 52 60 61 70 75 80 86 89 90
+# SMS ?= 50 52 60 61 70 75 80 86 89 90
+SMS ?= 75 80 86 89 90 # RTX 3060
 endif
 
 ifeq ($(SMS),)
@@ -313,9 +314,11 @@ endif
 ################################################################################
 
 # Target rules
+BIN_DIR := bin
+
 all: build
 
-build: matrixMul matrixMul1 matrixMulN
+build: $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMul1 $(BIN_DIR)/matrixMulN
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -324,32 +327,35 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-matrixMul.o:matrixMul.cu
+$(BIN_DIR):
+	mkdir -p $@
+
+$(BIN_DIR)/matrixMul.o: matrixMul.cu | $(BIN_DIR)
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-matrixMul: matrixMul.o
+$(BIN_DIR)/matrixMul: $(BIN_DIR)/matrixMul.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-matrixMul1.o:matrixMul1.cu
+$(BIN_DIR)/matrixMul1.o: matrixMul1.cu | $(BIN_DIR)
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-matrixMul1: matrixMul1.o
+$(BIN_DIR)/matrixMul1: $(BIN_DIR)/matrixMul1.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-matrixMulN.o:matrixMulN.cu
+$(BIN_DIR)/matrixMulN.o: matrixMulN.cu | $(BIN_DIR)
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-matrixMulN: matrixMulN.o
+$(BIN_DIR)/matrixMulN: $(BIN_DIR)/matrixMulN.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
-	$(EXEC) ./matrixMul
-	$(EXEC) ./matrixMul1
-	$(EXEC) ./matrixMulN
+	$(EXEC) ./$(BIN_DIR)/matrixMul
+	$(EXEC) ./$(BIN_DIR)/matrixMul1
+	$(EXEC) ./$(BIN_DIR)/matrixMulN
 
 testrun: build
 
 clean:
-	rm -f matrixMul matrixMul.o matrixMul1 matrixMul1.o matrixMulN matrixMulN.o
+	rm -f $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMul.o $(BIN_DIR)/matrixMul1 $(BIN_DIR)/matrixMul1.o $(BIN_DIR)/matrixMulN $(BIN_DIR)/matrixMulN.o
 
 clobber: clean

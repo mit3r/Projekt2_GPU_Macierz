@@ -351,9 +351,19 @@ int main(int argc, char **argv) {
     dimsB.y = getCmdLineArgumentInt(argc, (const char **)argv, "hB");
   }
 
+  // block size
+  if (checkCmdLineFlag(argc, (const char**)argv, "bs")) {
+    block_size = getCmdLineArgumentInt(argc, (const char**)argv, "bs");
+  }
+
   if (dimsA.x != dimsB.y) {
     printf("Error: outer matrix dimensions must be equal. (%d != %d)\n",
            dimsA.x, dimsB.y);
+    exit(EXIT_FAILURE);
+  }
+
+  if (block_size != 16 && block_size != 32) {
+    printf("Error: block size must be either 16 or 32. (%d)\n", block_size);
     exit(EXIT_FAILURE);
   }
 

@@ -209,10 +209,13 @@ int MatrixMultiply(int argc, char **argv,
   printf("Computing result using CUDA Kernel...\n");
 
   // Performs warmup operation using matrixMul CUDA kernel
-  if (block_size == 16) {
+  if (block_size == 8) {
+    MatrixMulCUDA_NCols<8, N>
+        <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
+  } else if (block_size == 16) {
     MatrixMulCUDA_NCols<16, N>
         <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
-  } else {
+  } else if (block_size == 32) {
     MatrixMulCUDA_NCols<32, N>
         <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
   }
@@ -227,10 +230,13 @@ int MatrixMultiply(int argc, char **argv,
   int nIter = 1;
 
   for (int j = 0; j < nIter; j++) {
-    if (block_size == 16) {
+    if (block_size == 8) {
+      MatrixMulCUDA_NCols<8, N>
+          <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
+    } else if (block_size == 16) {
       MatrixMulCUDA_NCols<16, N>
           <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
-    } else {
+    } else if (block_size == 32) {
       MatrixMulCUDA_NCols<32, N>
           <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
     }
@@ -362,8 +368,8 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  if (block_size != 16 && block_size != 32) {
-    printf("Error: block size must be either 16 or 32. (%d)\n", block_size);
+  if (block_size!=8 && block_size != 16 && block_size != 32) {
+    printf("Error: block size must be either 8, 16 or 32. (%d)\n", block_size);
     exit(EXIT_FAILURE);
   }
 

@@ -318,7 +318,7 @@ BIN_DIR := bin
 
 all: build
 
-build: $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMul1 $(BIN_DIR)/matrixMulN
+build: $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMulN_noReg $(BIN_DIR)/matrixMulN_Reg
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -336,26 +336,26 @@ $(BIN_DIR)/matrixMul.o: matrixMul.cu | $(BIN_DIR)
 $(BIN_DIR)/matrixMul: $(BIN_DIR)/matrixMul.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-$(BIN_DIR)/matrixMul1.o: matrixMul1.cu | $(BIN_DIR)
+$(BIN_DIR)/matrixMulN_noReg.o: matrixMulN_noReg.cu | $(BIN_DIR)
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-$(BIN_DIR)/matrixMul1: $(BIN_DIR)/matrixMul1.o
+$(BIN_DIR)/matrixMulN_noReg: $(BIN_DIR)/matrixMulN_noReg.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
-$(BIN_DIR)/matrixMulN.o: matrixMulN.cu | $(BIN_DIR)
+$(BIN_DIR)/matrixMulN_Reg.o: matrixMulN_Reg.cu | $(BIN_DIR)
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-$(BIN_DIR)/matrixMulN: $(BIN_DIR)/matrixMulN.o
+$(BIN_DIR)/matrixMulN_Reg: $(BIN_DIR)/matrixMulN_Reg.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
 	$(EXEC) ./$(BIN_DIR)/matrixMul
-	$(EXEC) ./$(BIN_DIR)/matrixMul1
-	$(EXEC) ./$(BIN_DIR)/matrixMulN
+	$(EXEC) ./$(BIN_DIR)/matrixMulN_noReg
+	$(EXEC) ./$(BIN_DIR)/matrixMulN_Reg
 
 testrun: build
 
 clean:
-	rm -f $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMul.o $(BIN_DIR)/matrixMul1 $(BIN_DIR)/matrixMul1.o $(BIN_DIR)/matrixMulN $(BIN_DIR)/matrixMulN.o
+	rm -f $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMul.o $(BIN_DIR)/matrixMulN_noReg $(BIN_DIR)/matrixMulN_noReg.o $(BIN_DIR)/matrixMulN_Reg $(BIN_DIR)/matrixMulN_Reg.o
 
 clobber: clean

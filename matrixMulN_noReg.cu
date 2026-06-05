@@ -55,7 +55,7 @@
  * Matrix multiplication (CUDA Kernel) on the device: C = A * B
  * wA is A's width and wB is B's width
  */
-template <int BLOCK_SIZE> __global__ void MatrixMulCUDA_2Cols(float *C, float *A,
+template <int BLOCK_SIZE, int N> __global__ void MatrixMulCUDA_NCols(float *C, float *A,
     float *B, int wA,
     int wB) {
   // Block index
@@ -76,15 +76,18 @@ template <int BLOCK_SIZE> __global__ void MatrixMulCUDA_2Cols(float *C, float *A
   int aStep  = BLOCK_SIZE;
 
   // Index of the first sub-matrix of B processed by the block
-  int bBegin = (2 * BLOCK_SIZE) * bx;
+  int bBegin = (N * BLOCK_SIZE) * bx;
 
   // Step size used to iterate through the sub-matrices of B
   int bStep  = BLOCK_SIZE * wB;
 
   // Csub is used to store the element of the block sub-matrix
   // that is computed by the thread
-  float Csub0 = 0;
-  float Csub1 = 0;
+  float Csub[N];
+#pragma unroll
+  for (int i = 0; i < N; ++i) {
+    Csub[i] = 0.0f;
+  }
 
   // Loop over all the sub-matrices of A and B
   // required to compute the block sub-matrix
@@ -97,14 +100,17 @@ template <int BLOCK_SIZE> __global__ void MatrixMulCUDA_2Cols(float *C, float *A
 
     // Declaration of the shared memory array Bs used to
     // store the sub-matrix of B
-    __shared__ float Bs[BLOCK_SIZE][2 * BLOCK_SIZE];
+    __shared__ float Bs[BLOCK_SIZE][N * BLOCK_SIZE];
 
     // Load the matrices from device memory
     // to shared memory; each thread loads
     // one element of each matrix
     As[ty][tx] = A[a + wA * ty + tx];
-    Bs[ty][tx] = B[b + wB * ty + tx];
-    Bs[ty][tx + BLOCK_SIZE] = B[b + wB * ty + tx + BLOCK_SIZE];
+    
+#pragma unroll
+    for (int i = 0; i < N; ++i) {
+      Bs[ty][tx + i * BLOCK_SIZE] = B[b + wB * ty + tx + i * BLOCK_SIZE];
+    }
 
     // Synchronize to make sure the matrices are loaded
     __syncthreads();
@@ -113,11 +119,11 @@ template <int BLOCK_SIZE> __global__ void MatrixMulCUDA_2Cols(float *C, float *A
     // each thread computes one element
     // of the block sub-matrix
 #pragma unroll
-
     for (int k = 0; k < BLOCK_SIZE; ++k) {
-      float a_val = As[ty][k];
-      Csub0 += a_val * Bs[k][tx];
-      Csub1 += a_val * Bs[k][tx + BLOCK_SIZE];
+#pragma unroll
+      for (int i = 0; i < N; ++i) {
+        Csub[i] += As[ty][k] * Bs[k][tx + i * BLOCK_SIZE];
+      }
     }
 
     // Synchronize to make sure that the preceding
@@ -128,9 +134,11 @@ template <int BLOCK_SIZE> __global__ void MatrixMulCUDA_2Cols(float *C, float *A
 
   // Write the block sub-matrix to device memory;
   // each thread writes one element
-  int cBegin = wB * BLOCK_SIZE * by + (2 * BLOCK_SIZE) * bx;
-  C[cBegin + wB * ty + tx] = Csub0;
-  C[cBegin + wB * ty + tx + BLOCK_SIZE] = Csub1;
+  int cBegin = wB * BLOCK_SIZE * by + (N * BLOCK_SIZE) * bx;
+#pragma unroll
+  for (int i = 0; i < N; ++i) {
+    C[cBegin + wB * ty + tx + i * BLOCK_SIZE] = Csub[i];
+  }
 }
 
 void ConstantInit(float *data, int size, float val) {
@@ -192,18 +200,22 @@ int MatrixMultiply(int argc, char **argv,
       cudaMemcpyAsync(d_B, h_B, mem_size_B, cudaMemcpyHostToDevice, stream));
 
   // Setup execution parameters
+  const int N = 2;
   dim3 threads(block_size, block_size);
-  dim3 grid(dimsB.x / (threads.x * 2), dimsA.y / threads.y);
+  dim3 grid(dimsB.x / (threads.x * N), dimsA.y / threads.y);
 
   // Create and start timer
   printf("Computing result using CUDA Kernel...\n");
 
   // Performs warmup operation using matrixMul CUDA kernel
-  if (block_size == 16) {
-    MatrixMulCUDA_2Cols<16>
+  if (block_size == 8) {
+    MatrixMulCUDA_NCols<8, N>
+        <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
+  } else if (block_size == 16) {
+    MatrixMulCUDA_NCols<16, N>
         <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
   } else {
-    MatrixMulCUDA_2Cols<32>
+    MatrixMulCUDA_NCols<32, N>
         <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
   }
 
@@ -217,11 +229,14 @@ int MatrixMultiply(int argc, char **argv,
   int nIter = 1;
 
   for (int j = 0; j < nIter; j++) {
-    if (block_size == 16) {
-      MatrixMulCUDA_2Cols<16>
+    if (block_size == 8) {
+      MatrixMulCUDA_NCols<8, N>
+          <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
+    } else if (block_size == 16) {
+      MatrixMulCUDA_NCols<16, N>
           <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
     } else {
-      MatrixMulCUDA_2Cols<32>
+      MatrixMulCUDA_NCols<32, N>
           <<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsB.x);
     }
   }
@@ -318,8 +333,8 @@ int main(int argc, char **argv) {
 
   int block_size = 32;
 
-  dim3 dimsA(50 * 2 * block_size, 50 * 2 * block_size, 1);
-  dim3 dimsB(50 * 2 * block_size, 50 * 2 * block_size, 1);
+  dim3 dimsA(100 * block_size, 100 * block_size, 1);
+  dim3 dimsB(100 * block_size, 100 * block_size, 1);
 
   // width of Matrix A
   if (checkCmdLineFlag(argc, (const char **)argv, "wA")) {
@@ -341,9 +356,19 @@ int main(int argc, char **argv) {
     dimsB.y = getCmdLineArgumentInt(argc, (const char **)argv, "hB");
   }
 
+  // block size
+  if (checkCmdLineFlag(argc, (const char**)argv, "bs")) {
+    block_size = getCmdLineArgumentInt(argc, (const char**)argv, "bs");
+  }
+
   if (dimsA.x != dimsB.y) {
     printf("Error: outer matrix dimensions must be equal. (%d != %d)\n",
            dimsA.x, dimsB.y);
+    exit(EXIT_FAILURE);
+  }
+
+  if (block_size != 8 && block_size != 16 && block_size != 32) {
+    printf("Error: block size must be either 8, 16 or 32. (%d)\n", block_size);
     exit(EXIT_FAILURE);
   }
 

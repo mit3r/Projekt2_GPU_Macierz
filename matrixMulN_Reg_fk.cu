@@ -5,6 +5,27 @@
 #include <helpers/helper_functions.h>
 #include <stdio.h>
 
+static bool LoadBinaryMatrix(const char* path, float* data, size_t count) {
+  FILE* fp = NULL;
+  FOPEN(fp, path, "rb");
+  if (fp == NULL) {
+    fprintf(stderr, "Failed to open input file: %s\n", path);
+    return false;
+  }
+
+  size_t read_count = fread(data, sizeof(float), count, fp);
+  fclose(fp);
+
+  if (read_count != count) {
+    fprintf(stderr,
+            "Failed to read %zu floats from input file: %s (read %zu)\n",
+            count, path, read_count);
+    return false;
+  }
+
+  return true;
+}
+
 #define DISPATCH_KERNEL(N_VAL)                                                                       \
   case N_VAL:                                                                                        \
     switch (block_size) {                                                                            \
@@ -89,27 +110,24 @@ void ConstantInit(float* data, int size, float val) {
   }
 }
 
-int MatrixMultiply(int argc, char** argv, int block_size, int n, const dim3& dimsA, const dim3& dimsB) {
+int MatrixMultiply(int block_size, int n, const dim3& dimsA, const dim3& dimsB,
+                   const float* h_A, const float* h_B,
+                   const float* h_C_ref, bool hasReferenceFile) {
   unsigned int size_A = dimsA.x * dimsA.y;
   unsigned int mem_size_A = sizeof(float) * size_A;
-  float* h_A;
-  checkCudaErrors(cudaMallocHost(&h_A, mem_size_A));
 
   unsigned int size_B = dimsB.x * dimsB.y;
   unsigned int mem_size_B = sizeof(float) * size_B;
-  float* h_B;
-  checkCudaErrors(cudaMallocHost(&h_B, mem_size_B));
+
+  unsigned int size_C = dimsB.x * dimsA.y;
+  unsigned int mem_size_C = sizeof(float) * size_C;
 
   cudaStream_t stream;
-
-  const float valB = 0.01f;
-  ConstantInit(h_A, size_A, 1.0f);
-  ConstantInit(h_B, size_B, valB);
 
   float *d_A, *d_B, *d_C;
 
   dim3 dimsC(dimsB.x, dimsA.y, 1);
-  unsigned int mem_size_C = dimsC.x * dimsC.y * sizeof(float);
+  mem_size_C = dimsC.x * dimsC.y * sizeof(float);
   float* h_C;
   checkCudaErrors(cudaMallocHost(&h_C, mem_size_C));
 
@@ -202,28 +220,30 @@ int MatrixMultiply(int argc, char** argv, int block_size, int n, const dim3& dim
   printf("Checking computed result for correctness: ");
   bool correct = true;
 
-  // test relative error by the formula
-  //     |<x, y>_cpu - <x,y>_gpu|/<|x|, |y|>  < eps
-  double eps = 1.e-4;  // 1.e-6;  // machine zero
+  if (hasReferenceFile) {
+    double eps = 1.e-4;
 
-  for (int i = 0; i < static_cast<int>(dimsC.x * dimsC.y); i++) {
-    double abs_err = fabs(h_C[i] - (dimsA.x * valB));
-    double dot_length = dimsA.x;
-    double abs_val = fabs(h_C[i]);
-    double rel_err = abs_err / abs_val / dot_length;
+    for (int i = 0; i < static_cast<int>(dimsC.x * dimsC.y); i++) {
+      double abs_err = fabs(h_C[i] - h_C_ref[i]);
+      double abs_val = fabs(h_C[i]);
+      double ref_val = fabs(h_C_ref[i]);
+      double denom = abs_val > ref_val ? abs_val : ref_val;
+      if (denom == 0.0) denom = 1.0;
+      double rel_err = abs_err / denom;
 
-    if (rel_err > eps) {
-      printf("Error! Matrix[%05d]=%.8f, ref=%.8f error term is > %E\n",
-             i, h_C[i], dimsA.x * valB, eps);
-      correct = false;
+      if (rel_err > eps) {
+        printf("Error! Matrix[%05d]=%.8f, ref=%.8f error term is > %E\n",
+               i, h_C[i], h_C_ref[i], eps);
+        correct = false;
+      }
     }
+  } else {
+    printf("skipped (no -cin reference file)\n");
   }
 
   printf("%s\n", correct ? "Result = PASS" : "Result = FAIL");
 
   // Clean up memory
-  checkCudaErrors(cudaFreeHost(h_A));
-  checkCudaErrors(cudaFreeHost(h_B));
   checkCudaErrors(cudaFreeHost(h_C));
   checkCudaErrors(cudaFree(d_A));
   checkCudaErrors(cudaFree(d_B));
@@ -252,9 +272,9 @@ int main(int argc, char** argv) {
     printf("Usage -device=n (n >= 0 for deviceID)\n");
     printf("      -bs=BlockSize (Block size is 8, 16 or 32)\n");
     printf("      -n=N (N is the number of columns of B to process, 1-8)\n");
-    printf(
-        "  Note: Outer matrix dimensions of A & B matrices"
-        " must be equal.\n");
+    printf("      -ina=path -inb=path (binary float32 inputs, 3200x3200 each)\n");
+    printf("      -cin=path (binary float32 reference C, 3200x3200)\n");
+    printf("  Note: Outer matrix dimensions of A & B matrices must be equal.\n");
 
     exit(EXIT_SUCCESS);
   }
@@ -267,6 +287,24 @@ int main(int argc, char** argv) {
 
   dim3 dimsA(3200, 3200, 1);
   dim3 dimsB(3200, 3200, 1);
+
+  unsigned int size_A = dimsA.x * dimsA.y;
+  unsigned int size_B = dimsB.x * dimsB.y;
+  unsigned int size_C = dimsB.x * dimsA.y;
+
+  unsigned int mem_size_A = sizeof(float) * size_A;
+  unsigned int mem_size_B = sizeof(float) * size_B;
+  unsigned int mem_size_C = sizeof(float) * size_C;
+
+  float* h_A;
+  checkCudaErrors(cudaMallocHost(&h_A, mem_size_A));
+  float* h_B;
+  checkCudaErrors(cudaMallocHost(&h_B, mem_size_B));
+  float* h_C_ref = NULL;
+  bool hasReferenceFile = false;
+  char* inAPath = NULL;
+  char* inBPath = NULL;
+  char* inCPath = NULL;
 
   // block size
   if (checkCmdLineFlag(argc, (const char**)argv, "bs")) {
@@ -288,12 +326,45 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
+  if (getCmdLineArgumentString(argc, (const char**)argv, "ina", &inAPath) ||
+      getCmdLineArgumentString(argc, (const char**)argv, "inb", &inBPath)) {
+    if (inAPath == NULL || inBPath == NULL) {
+      printf("Error: both -ina and -inb must be provided together.\n");
+      exit(EXIT_FAILURE);
+    }
+    if (!LoadBinaryMatrix(inAPath, h_A, size_A) ||
+        !LoadBinaryMatrix(inBPath, h_B, size_B)) {
+      exit(EXIT_FAILURE);
+    }
+  } else {
+    const float valB = 0.01f;
+    ConstantInit(h_A, size_A, 1.0f);
+    ConstantInit(h_B, size_B, valB);
+  }
+
+  if (getCmdLineArgumentString(argc, (const char**)argv, "cin", &inCPath)) {
+    hasReferenceFile = true;
+    checkCudaErrors(cudaMallocHost(&h_C_ref, mem_size_C));
+    if (!LoadBinaryMatrix(inCPath, h_C_ref, size_C)) {
+      exit(EXIT_FAILURE);
+    }
+  }
+
   printf("MatrixA(%d,%d), MatrixB(%d,%d)\n", dimsA.x, dimsA.y,
          dimsB.x, dimsB.y);
 
   checkCudaErrors(cudaProfilerStart());
-  int matrix_result = MatrixMultiply(argc, argv, block_size, n, dimsA, dimsB);
+  int matrix_result = MatrixMultiply(
+      block_size,
+      n, dimsA, dimsB, h_A, h_B,
+      h_C_ref, hasReferenceFile);
   checkCudaErrors(cudaProfilerStop());
+
+  checkCudaErrors(cudaFreeHost(h_A));
+  checkCudaErrors(cudaFreeHost(h_B));
+  if (h_C_ref != NULL) {
+    checkCudaErrors(cudaFreeHost(h_C_ref));
+  }
 
   exit(matrix_result);
 }

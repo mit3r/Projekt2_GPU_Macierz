@@ -348,10 +348,17 @@ $(BIN_DIR)/matrixMulN_Reg.o: matrixMulN_Reg.cu | $(BIN_DIR)
 $(BIN_DIR)/matrixMulN_Reg: $(BIN_DIR)/matrixMulN_Reg.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
+$(BIN_DIR)/matrixMulN_Reg_fk.o: matrixMulN_Reg_fk.cu | $(BIN_DIR)
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(BIN_DIR)/matrixMulN_Reg_fk: $(BIN_DIR)/matrixMulN_Reg_fk.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
 run: build
 	$(EXEC) ./$(BIN_DIR)/matrixMul
 	$(EXEC) ./$(BIN_DIR)/matrixMulN_noReg
 	$(EXEC) ./$(BIN_DIR)/matrixMulN_Reg
+	$(EXEC) ./$(BIN_DIR)/matrixMulN_Reg_fk
 
 testrun: build
 

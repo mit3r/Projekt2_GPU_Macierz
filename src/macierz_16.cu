@@ -12,6 +12,32 @@
     MatrixMulCUDA_NCols<BS_VAL, N_VAL><<<grid, threads, 0, stream>>>(d_C, d_A, d_B, dimsA.x, dimsA.y, dimsB.x); \
     break;
 
+#define KERNEL_RUN                                                                                 \
+  switch (n) {                                                                                     \
+    DISPATCH_KERNEL(BLOCK_SIZE, 1);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 2);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 3);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 4);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 5);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 6);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 7);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 8);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 9);                                                                \
+    DISPATCH_KERNEL(BLOCK_SIZE, 10);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 11);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 12);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 13);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 14);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 15);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 16);                                                               \
+    DISPATCH_KERNEL(BLOCK_SIZE, 24);                                                               \
+    /* DISPATCH_KERNEL(BLOCK_SIZE, 25); -> uses too much shared data (0xc800 bytes, 0xc000 max) */ \
+                                                                                                   \
+  default:                                                                                         \
+    fprintf(stderr, "Error: n is not included\n");                                                 \
+    return EXIT_FAILURE;                                                                           \
+  }
+
 template <int BLOCK_SIZE, int N>
 __global__ void MatrixMulCUDA_NCols(float* C, float* A, float* B, int wA, int hA, int wB) {
   int bx = blockIdx.x;
@@ -156,30 +182,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
   printf("Computing result using CUDA Kernel...\n");
 
   // Performs warmup operation using matrixMul CUDA kernel
-  switch (n) {
-    DISPATCH_KERNEL(BLOCK_SIZE, 1);
-    DISPATCH_KERNEL(BLOCK_SIZE, 2);
-    DISPATCH_KERNEL(BLOCK_SIZE, 3);
-    DISPATCH_KERNEL(BLOCK_SIZE, 4);
-    DISPATCH_KERNEL(BLOCK_SIZE, 5);
-    DISPATCH_KERNEL(BLOCK_SIZE, 6);
-    DISPATCH_KERNEL(BLOCK_SIZE, 7);
-    DISPATCH_KERNEL(BLOCK_SIZE, 8);
-    DISPATCH_KERNEL(BLOCK_SIZE, 9);
-    DISPATCH_KERNEL(BLOCK_SIZE, 10);
-    DISPATCH_KERNEL(BLOCK_SIZE, 11);
-    DISPATCH_KERNEL(BLOCK_SIZE, 12);
-    DISPATCH_KERNEL(BLOCK_SIZE, 13);
-    DISPATCH_KERNEL(BLOCK_SIZE, 14);
-    DISPATCH_KERNEL(BLOCK_SIZE, 15);
-    DISPATCH_KERNEL(BLOCK_SIZE, 16);
-    DISPATCH_KERNEL(BLOCK_SIZE, 24);
-    // DISPATCH_KERNEL(BLOCK_SIZE, 25); -> uses too much shared data (0xc800 bytes, 0xc000 max)
-
-  default:
-    fprintf(stderr, "Error: n is not included\n");
-    return EXIT_FAILURE;
-  }
+  KERNEL_RUN
 
   printf("done\n");
   checkCudaErrors(cudaStreamSynchronize(stream));
@@ -189,30 +192,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
 
   int nIter = 1;
   for (int j = 0; j < nIter; j++) {
-    switch (n) {
-      DISPATCH_KERNEL(BLOCK_SIZE, 1);
-      DISPATCH_KERNEL(BLOCK_SIZE, 2);
-      DISPATCH_KERNEL(BLOCK_SIZE, 3);
-      DISPATCH_KERNEL(BLOCK_SIZE, 4);
-      DISPATCH_KERNEL(BLOCK_SIZE, 5);
-      DISPATCH_KERNEL(BLOCK_SIZE, 6);
-      DISPATCH_KERNEL(BLOCK_SIZE, 7);
-      DISPATCH_KERNEL(BLOCK_SIZE, 8);
-      DISPATCH_KERNEL(BLOCK_SIZE, 9);
-      DISPATCH_KERNEL(BLOCK_SIZE, 10);
-      DISPATCH_KERNEL(BLOCK_SIZE, 11);
-      DISPATCH_KERNEL(BLOCK_SIZE, 12);
-      DISPATCH_KERNEL(BLOCK_SIZE, 13);
-      DISPATCH_KERNEL(BLOCK_SIZE, 14);
-      DISPATCH_KERNEL(BLOCK_SIZE, 15);
-      DISPATCH_KERNEL(BLOCK_SIZE, 16);
-      DISPATCH_KERNEL(BLOCK_SIZE, 24);
-      // DISPATCH_KERNEL(BLOCK_SIZE, 25); -> uses too much shared data (0xc800 bytes, 0xc000 max)
-
-    default:
-      fprintf(stderr, "Error: n is not included\n");
-      return EXIT_FAILURE;
-    }
+    KERNEL_RUN
   }
 
   checkCudaErrors(cudaEventRecord(stop, stream));

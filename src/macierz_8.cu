@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
   int dev = findCudaDevice(argc, (const char**)argv);
 
   int n = 1;
-  constexpr int block_size = 32;
+  constexpr int block_size = 8;
 
   // Nowe domyślne wielkości macierzy: 4096 x 4096
   dim3 dimsA(4096, 4096, 1);

@@ -335,11 +335,6 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
-  if (n < 1 || n > 8) {
-    printf("Error: n must be between 1 and 8. (%d)\n", n);
-    exit(EXIT_FAILURE);
-  }
-
   if (getCmdLineArgumentString(argc, (const char**)argv, "ina", &inAPath) ||
       getCmdLineArgumentString(argc, (const char**)argv, "inb", &inBPath)) {
     if (inAPath == NULL || inBPath == NULL) {

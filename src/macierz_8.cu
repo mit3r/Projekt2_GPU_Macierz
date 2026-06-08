@@ -173,6 +173,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
     DISPATCH_KERNEL(BLOCK_SIZE, 14);
     DISPATCH_KERNEL(BLOCK_SIZE, 15);
     DISPATCH_KERNEL(BLOCK_SIZE, 16);
+    DISPATCH_KERNEL(BLOCK_SIZE, 17);
   default:
     fprintf(stderr, "Error: n is not included\n");
     return EXIT_FAILURE;
@@ -203,6 +204,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
       DISPATCH_KERNEL(BLOCK_SIZE, 14);
       DISPATCH_KERNEL(BLOCK_SIZE, 15);
       DISPATCH_KERNEL(BLOCK_SIZE, 16);
+      DISPATCH_KERNEL(BLOCK_SIZE, 17);
     default:
       fprintf(stderr, "Error: n is not included\n");
       return EXIT_FAILURE;

@@ -174,7 +174,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
     DISPATCH_KERNEL(BLOCK_SIZE, 15);
     DISPATCH_KERNEL(BLOCK_SIZE, 16);
     DISPATCH_KERNEL(BLOCK_SIZE, 24);
-    DISPATCH_KERNEL(BLOCK_SIZE, 25);
+    // DISPATCH_KERNEL(BLOCK_SIZE, 25); -> uses too much shared data (0xc800 bytes, 0xc000 max)
 
   default:
     fprintf(stderr, "Error: n is not included\n");
@@ -207,7 +207,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
       DISPATCH_KERNEL(BLOCK_SIZE, 15);
       DISPATCH_KERNEL(BLOCK_SIZE, 16);
       DISPATCH_KERNEL(BLOCK_SIZE, 24);
-      DISPATCH_KERNEL(BLOCK_SIZE, 25);
+      // DISPATCH_KERNEL(BLOCK_SIZE, 25); -> uses too much shared data (0xc800 bytes, 0xc000 max)
 
     default:
       fprintf(stderr, "Error: n is not included\n");

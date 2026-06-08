@@ -318,7 +318,7 @@ BIN_DIR := bin
 
 all: build
 
-build: $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMulN_noReg $(BIN_DIR)/matrixMulN_Reg $(BIN_DIR)/matrixMulN_Reg_fk
+build: $(BIN_DIR)/matrixMul $(BIN_DIR)/matrixMulN_noReg $(BIN_DIR)/matrixMulN_Reg $(BIN_DIR)/matrixMulN_Reg_fk $(BIN_DIR)/matrixMul_Reg_fk2
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -354,11 +354,18 @@ $(BIN_DIR)/matrixMulN_Reg_fk.o: matrixMulN_Reg_fk.cu | $(BIN_DIR)
 $(BIN_DIR)/matrixMulN_Reg_fk: $(BIN_DIR)/matrixMulN_Reg_fk.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
+$(BIN_DIR)/matrixMul_Reg_fk2.o: matrixMul_Reg_fk2.cu | $(BIN_DIR)
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(BIN_DIR)/matrixMul_Reg_fk2: $(BIN_DIR)/matrixMul_Reg_fk2.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+
 run: build
 	$(EXEC) ./$(BIN_DIR)/matrixMul
 	$(EXEC) ./$(BIN_DIR)/matrixMulN_noReg
 	$(EXEC) ./$(BIN_DIR)/matrixMulN_Reg
 	$(EXEC) ./$(BIN_DIR)/matrixMulN_Reg_fk
+	$(EXEC) ./$(BIN_DIR)/matrixMul_Reg_fk2
 
 testrun: build
 

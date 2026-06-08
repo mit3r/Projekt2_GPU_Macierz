@@ -185,6 +185,9 @@ int MatrixMultiply(int block_size, int n, const dim3& dimsA, const dim3& dimsB,
     DISPATCH_KERNEL(6);
     DISPATCH_KERNEL(7);
     DISPATCH_KERNEL(8);
+  default:
+    fprintf(stderr, "Error: n must be between 1 and 8. (%d)\n", n);
+    return EXIT_FAILURE;
   }
 
   printf("done\n");
@@ -204,6 +207,9 @@ int MatrixMultiply(int block_size, int n, const dim3& dimsA, const dim3& dimsB,
       DISPATCH_KERNEL(6);
       DISPATCH_KERNEL(7);
       DISPATCH_KERNEL(8);
+    default:
+      fprintf(stderr, "Error: n must be between 1 and 8. (%d)\n", n);
+      return EXIT_FAILURE;
     }
   }
 

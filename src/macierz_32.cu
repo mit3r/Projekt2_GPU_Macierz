@@ -157,12 +157,12 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
 
   // Performs warmup operation using matrixMul CUDA kernel
   switch (n) {
-    DISPATCH_KERNEL(BLOCK_SIZE, 1);
-    DISPATCH_KERNEL(BLOCK_SIZE, 2);
-    DISPATCH_KERNEL(BLOCK_SIZE, 3);
-    DISPATCH_KERNEL(BLOCK_SIZE, 4);
-    DISPATCH_KERNEL(BLOCK_SIZE, 5);
-    DISPATCH_KERNEL(BLOCK_SIZE, 6);
+    DISPATCH_KERNEL(BLOCK_SIZE, 1);  // PASS
+    DISPATCH_KERNEL(BLOCK_SIZE, 2);  // PASS
+    DISPATCH_KERNEL(BLOCK_SIZE, 3);  // PASS
+    DISPATCH_KERNEL(BLOCK_SIZE, 4);  // PASS
+    DISPATCH_KERNEL(BLOCK_SIZE, 5);  // FAIL
+    DISPATCH_KERNEL(BLOCK_SIZE, 6);  // FAIL
   default:
     fprintf(stderr, "Error: n is not included\n");
     return EXIT_FAILURE;

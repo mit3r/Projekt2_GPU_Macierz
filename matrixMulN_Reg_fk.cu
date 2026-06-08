@@ -28,7 +28,7 @@ __global__ void MatrixMulCUDA_NCols(float* C, float* A,
   int aEnd = aBegin + wA - 1;
 
   // Step size used to iterate through the sub-matrices of A
-  int aStep = BLOCK_SIZE * N;
+  int aStep = BLOCK_SIZE;
 
   // Index of the first sub-matrix of B in column processed by the block
   int bBegin = BLOCK_SIZE * bx;

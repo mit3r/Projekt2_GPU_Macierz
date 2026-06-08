@@ -299,8 +299,8 @@ int main(int argc, char** argv) {
 
   int block_size = 32, n = 2;
 
-  dim3 dimsA(3200, 3200, 1);
-  dim3 dimsB(3200, 3200, 1);
+  dim3 dimsA(4096, 4096, 1);
+  dim3 dimsB(4096, 4096, 1);
 
   unsigned int size_A = dimsA.x * dimsA.y;
   unsigned int size_B = dimsB.x * dimsB.y;

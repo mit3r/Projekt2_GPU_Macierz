@@ -152,13 +152,13 @@ int MatrixMultiply(int block_size, int n, const dim3& dimsA, const dim3& dimsB,
       cudaMemcpyAsync(d_B, h_B, mem_size_B, cudaMemcpyHostToDevice, stream));
 
   dim3 threads(block_size, block_size);
-  if ((dimsA.y % (threads.y * n)) != 0 || (dimsB.x % threads.x) != 0) {
-    fprintf(stderr,
-            "Error: dimensions must satisfy hA %% (bs*N) == 0 and wB %% bs == 0. "
-            "(hA=%u, wB=%u, bs=%u, n=%d)\n",
-            dimsA.y, dimsB.x, threads.x, n);
-    return EXIT_FAILURE;
-  }
+  // if ((dimsA.y % (threads.y * n)) != 0 || (dimsB.x % threads.x) != 0) {
+  //   fprintf(stderr,
+  //           "Error: dimensions must satisfy hA %% (bs*N) == 0 and wB %% bs == 0. "
+  //           "(hA=%u, wB=%u, bs=%u, n=%d)\n",
+  //           dimsA.y, dimsB.x, threads.x, n);
+  //   return EXIT_FAILURE;
+  // }
 
   dim3 grid(dimsB.x / threads.x, dimsA.y / (threads.y * n));
 

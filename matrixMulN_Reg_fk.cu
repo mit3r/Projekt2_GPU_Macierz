@@ -157,7 +157,15 @@ int MatrixMultiply(int argc, char** argv,
   // Setup execution parameters
   const int N = 2;
   dim3 threads(block_size, block_size);
-  dim3 grid(dimsB.x / (threads.x * N), dimsA.y / threads.y);
+  if ((dimsA.y % (threads.y * N)) != 0 || (dimsB.x % threads.x) != 0) {
+    fprintf(stderr,
+            "Error: dimensions must satisfy hA %% (bs*N) == 0 and wB %% bs == 0. "
+            "(hA=%u, wB=%u, bs=%u, N=%d)\n",
+            dimsA.y, dimsB.x, threads.x, N);
+    return EXIT_FAILURE;
+  }
+  // One block computes N row-tiles from A and one column-tile from B.
+  dim3 grid(dimsB.x / threads.x, dimsA.y / (threads.y * N));
 
   // Create and start timer
   printf("Computing result using CUDA Kernel...\n");

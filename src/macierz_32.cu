@@ -214,9 +214,6 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
   checkCudaErrors(cudaFree(d_C));
   checkCudaErrors(cudaEventDestroy(start));
   checkCudaErrors(cudaEventDestroy(stop));
-  printf(
-      "\nNOTE: The CUDA Samples are not meant for performance "
-      "measurements. Results may vary when GPU Boost is enabled.\n");
 
   return EXIT_SUCCESS;
 }

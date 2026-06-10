@@ -56,7 +56,7 @@ run_profiler_for() {
 
   nvprof --export-profile "$run_dir/timeline.prof" $cmd
   for metric in "${metrics[@]}"; do
-    nvprof --metrics $metric -o "$run_dir/profile_${metric}.prof" $cmd
+    nvprof --metrics $metric $cmd 2> "$run_dir/$metric.csv" 1> "$run_dir/$metric.txt"
   done
 
 }

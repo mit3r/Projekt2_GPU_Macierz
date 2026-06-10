@@ -23,12 +23,13 @@ cmd_from_params() {
   local thread_work=$1
   local block_size=$2
 
-  # if [ "$block_size" -eq 8 ]; then
-  #   prog="./bin/macierz_8"
-  elif [ "$block_size" -eq 16 ]; then
+  
+  if [ "$block_size" -eq 16 ]; then
     prog="./bin/macierz_16"
   elif [ "$block_size" -eq 32 ]; then
     prog="./bin/macierz_32"
+  # elif [ "$block_size" -eq 8 ]; then
+  #   prog="./bin/macierz_8"
   else
     echo "Invalid block size: $block_size"
     exit 1

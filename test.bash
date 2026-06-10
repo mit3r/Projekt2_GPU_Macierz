@@ -22,40 +22,34 @@ events=(
 cmd_from_params() {
   local thread_work=$1
   local block_size=$2
-  local registers=$3
 
-  local prog
-  if [ $registers -eq 1 ]; then
-    prog="./bin/matrixMulN_reg"
+  if [ "$block_size" -eq 8 ]; then
+    prog="./bin/matrixMulN_8"
+  elif [ "$block_size" -eq 16 ]; then
+    prog="./bin/matrixMulN_16"
+  elif [ "$block_size" -eq 32 ]; then
+    prog="./bin/matrixMulN_32"
   else
-    prog="./bin/matrixMulN"
+    echo "Invalid block size: $block_size"
+    exit 1
   fi
 
-  echo "$prog -wA=3200 -hA=3200 -wB=3200 -hB=3200 -bs=$block_size"
+  echo "$prog -n=$thread_work"
 }
 
 label_from_params() {
   local thread_work=$1
   local block_size=$2
-  local registers=$3
 
-  local reg_label
-  if [ $registers -eq 1 ]; then
-    reg_label="reg"
-  else
-    reg_label="noreg"
-  fi
-
-  echo "tw${thread_work}_bs${block_size}_${reg_label}"
+  echo "tw${thread_work}x${thread_work}_bs${block_size}"
 }
 
 run_profiler_for() {
   local thread_work=$1
   local block_size=$2
-  local registers=$3
 
-  local cmd=$(cmd_from_params $thread_work $block_size $registers)
-  local label=$(label_from_params $thread_work $block_size $registers)
+  local cmd=$(cmd_from_params $thread_work $block_size)
+  local label=$(label_from_params $thread_work $block_size)
   local run_dir="$profiler_output_dir/$label"
 
   mkdir -p "$run_dir"
@@ -68,13 +62,19 @@ run_profiler_for() {
 }
 
 for thread_work in 1 2 3 4 5 6; do
-  for block_size in 8 16 32; do
-    for registers in 0 1; do
+  block_size=32
+  echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
+  # run_profiler_for "$thread_work" "$block_size"
+done
 
-      
-      echo "Running profiler for $(cmd_from_params $thread_work $block_size $registers)"
-      run_profiler_for "$thread_work" "$block_size" "$registers"
+for thread_work in 1 2 3 4 6 8 12 16 24; do
+  block_size=16
+  echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
+  # run_profiler_for "$thread_work" "$block_size"
+done
 
-    done
-  done
+for thread_work in 1 2 3 4 6 8 12 16 24 32 64; do
+  block_size=8
+  echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
+  # run_profiler_for "$thread_work" "$block_size"
 done

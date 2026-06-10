@@ -149,6 +149,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
   switch (n) {
     DISPATCH_KERNEL(BLOCK_SIZE, 1);
     DISPATCH_KERNEL(BLOCK_SIZE, 2);
+    DISPATCH_KERNEL(BLOCK_SIZE, 3);
     DISPATCH_KERNEL(BLOCK_SIZE, 4);
     DISPATCH_KERNEL(BLOCK_SIZE, 5);
     DISPATCH_KERNEL(BLOCK_SIZE, 6);
@@ -172,6 +173,7 @@ int MatrixMultiply(int n, const dim3& dimsA, const dim3& dimsB,
     switch (n) {
       DISPATCH_KERNEL(BLOCK_SIZE, 1);
       DISPATCH_KERNEL(BLOCK_SIZE, 2);
+      DISPATCH_KERNEL(BLOCK_SIZE, 3);
       DISPATCH_KERNEL(BLOCK_SIZE, 4);
       DISPATCH_KERNEL(BLOCK_SIZE, 5);
       DISPATCH_KERNEL(BLOCK_SIZE, 6);
@@ -242,9 +244,9 @@ int main(int argc, char** argv) {
   int n = 1;
   constexpr int block_size = 32;
 
-  // Nowe domyślne wielkości macierzy: 4096 x 4096
-  dim3 dimsA(4096, 4096, 1);
-  dim3 dimsB(4096, 4096, 1);
+  // Nowe domyślne wielkości macierzy: 3072 x 3072
+  dim3 dimsA(3072, 3072, 1);
+  dim3 dimsB(3072, 3072, 1);
 
   unsigned int size_A = dimsA.x * dimsA.y;
   unsigned int size_B = dimsB.x * dimsB.y;

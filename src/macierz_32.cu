@@ -10,12 +10,11 @@
 #define DISPATCH_KERNEL(BS_VAL, N_VAL)                                \
   case N_VAL:                                                         \
     MatrixMulCUDA_NCols<BS_VAL, N_VAL><<<grid, threads, 0, stream>>>( \
-        d_C, d_A, d_B, dimsA.x, dimsA.y, dimsB.x);                    \
+        d_C, d_A, d_B, dimsA.x, dimsB.x);                             \
     break;
 
 template <int BLOCK_SIZE, int N>
-__global__ void MatrixMulCUDA_NCols(float* C, float* A, float* B, int wA,
-                                    int hA, int wB) {
+__global__ void MatrixMulCUDA_NCols(float* C, float* A, float* B, int wA, int wB) {
   int bx = blockIdx.x;
   int by = blockIdx.y;
 
@@ -74,9 +73,7 @@ __global__ void MatrixMulCUDA_NCols(float* C, float* A, float* B, int wA,
     for (int j = 0; j < N; ++j) {
       int row = by * BLOCK_SIZE * N + i * BLOCK_SIZE + ty;
       int col = bx * BLOCK_SIZE * N + j * BLOCK_SIZE + tx;
-      if (row < hA && col < wB) {
-        C[row * wB + col] = Csub[i][j];
-      }
+      C[row * wB + col] = Csub[i][j];
     }
   }
 }

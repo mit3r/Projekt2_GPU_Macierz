@@ -6,22 +6,19 @@ mkdir -p "$profiler_output_dir"
 CUDA_VISIBLE_DEVICES=1
 
 metrics=(
-  # "gld_transactions_per_request"
-  # "gst_transactions_per_request"
-  # "shared_load_transactions_per_request"
-  # "shared_store_transactions_per_request"
   "achieved_occupancy"
   "sm_efficiency"
   "ipc"
   "flop_sp_efficiency"
   "flop_dp_efficiency"
-  "flop_count_dp"
+  "flop_count_sp"
   "dram_read_transactions"
   "dram_write_transactions"
   "shared_load_transactions"
   "shared_store_transactions"
   "gld_transactions"
   "gst_transactions"
+  "dram_read_bytes"
 )
 
 events=(

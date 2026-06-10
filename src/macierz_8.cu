@@ -87,11 +87,11 @@ void ConstantInit(float* data, int size, float val) {
   }
 }
 
-void RandomInitRange(float* data, int size, float min_val, float max_val) {
+void PseudoRandomInitRange(float* data, int size, float min_val, float max_val) {
+  srand(123456789);  // Stały seed dla powtarzalności wyników
   for (int i = 0; i < size; ++i) {
-    float normalized =
-        static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-    data[i] = min_val + normalized * (max_val - min_val);
+    const float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    data[i] = min_val + t * (max_val - min_val);
   }
 }
 
@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
   printf("Test 1 result: %s\n", test1_ok ? "PASS" : "FAIL");
 
   printf("Test 2: random A in [1,5], B=I\n");
-  RandomInitRange(h_A, size_A, 1.0f, 5.0f);
+  PseudoRandomInitRange(h_A, size_A, 1.0f, 5.0f);
   IdentityInit(h_B, dimsB.x, dimsB.y);
   int matrix_result_second =
       MatrixMultiply<block_size>(n, dimsA, dimsB, h_A, h_B, h_C);

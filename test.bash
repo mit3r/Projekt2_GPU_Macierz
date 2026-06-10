@@ -24,11 +24,11 @@ cmd_from_params() {
   local block_size=$2
 
   if [ "$block_size" -eq 8 ]; then
-    prog="./bin/matrixMulN_8"
+    prog="./bin/macierz_8"
   elif [ "$block_size" -eq 16 ]; then
-    prog="./bin/matrixMulN_16"
+    prog="./bin/macierz_16"
   elif [ "$block_size" -eq 32 ]; then
-    prog="./bin/matrixMulN_32"
+    prog="./bin/macierz_32"
   else
     echo "Invalid block size: $block_size"
     exit 1

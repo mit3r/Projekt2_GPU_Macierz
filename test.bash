@@ -3,6 +3,8 @@
 profiler_output_dir="profiler_outputs"
 mkdir -p "$profiler_output_dir"
 
+cuenv="CUDA_VISIBLE_DEVICES=0"
+
 metrics=(
   "gld_transactions_per_request"
   "gst_transactions_per_request"
@@ -55,10 +57,10 @@ run_profiler_for() {
 
   mkdir -p "$run_dir"
 
-  $cmd > "$run_dir/time.txt"
-  nvprof --export-profile "$run_dir/timeline.prof" $cmd
+  $cuenv $cmd > "$run_dir/time.txt"
+  $cuenv nvprof --export-profile "$run_dir/timeline.prof" $cmd
   for metric in "${metrics[@]}"; do
-    nvprof --metrics $metric $cmd 2> "$run_dir/$metric.csv" 1> "$run_dir/$metric.txt"
+    $cuenv nvprof --metrics $metric $cmd 2> "$run_dir/$metric.csv" 1> "$run_dir/$metric.txt"
   done
 
 }

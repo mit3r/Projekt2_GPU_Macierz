@@ -64,17 +64,17 @@ run_profiler_for() {
 for thread_work in 1 2 3 4 5 6; do
   block_size=32
   echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
-  # run_profiler_for "$thread_work" "$block_size"
+  run_profiler_for "$thread_work" "$block_size"
 done
 
 for thread_work in 1 2 3 4 6 8 12 16 24; do
   block_size=16
   echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
-  # run_profiler_for "$thread_work" "$block_size"
+  run_profiler_for "$thread_work" "$block_size"
 done
 
 for thread_work in 1 2 3 4 6 8 12 16 24 32 64; do
   block_size=8
   echo "Running profiler for $(label_from_params $thread_work $block_size) by: $(cmd_from_params $thread_work $block_size)"
-  # run_profiler_for "$thread_work" "$block_size"
+  run_profiler_for "$thread_work" "$block_size"
 done
